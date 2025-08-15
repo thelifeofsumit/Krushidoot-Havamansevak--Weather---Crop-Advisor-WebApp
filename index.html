@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Krushidoot Havamansevak</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="bg-light">
+<div class="container mt-5">
+    <h1 class="text-center text-success">Krushidoot Havamansevak</h1>
+    <p class="text-center text-muted">Weather & Crop Advisory for Farmers</p>
+
+    <div class="card p-3 shadow">
+        <form id="weatherForm">
+            <div class="mb-3">
+                <label for="city" class="form-label">Enter City</label>
+                <input type="text" id="city" name="city" class="form-control" placeholder="e.g. Pune" required>
+            </div>
+            <button type="submit" class="btn btn-success w-100">Get Advisory</button>
+        </form>
+    </div>
+
+    <div id="result" class="mt-4"></div>
+</div>
+
+<script>
+document.getElementById("weatherForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+
+    fetch("/weather", {
+        method: "POST",
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.error) {
+            document.getElementById("result").innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
+        } else {
+            const speech = new SpeechSynthesisUtterance(
+                `Weather in ${data.city}: ${data.weather}, temperature ${data.temperature}°C. ${data.advisory}`
+            );
+            speech.lang = "en-IN";
+            window.speechSynthesis.speak(speech);
+
+            document.getElementById("result").innerHTML = `
+                <div class="card p-3 shadow-sm">
+                    <h4>${data.city}</h4>
+                    <p><strong>Temperature:</strong> ${data.temperature}°C</p>
+                    <p><strong>Condition:</strong> ${data.weather}</p>
+                    <p class="text-primary"><strong>Advisory:</strong> ${data.advisory}</p>
+                </div>
+            `;
+        }
+    });
+});
+</script>
+</body>
+</html>
